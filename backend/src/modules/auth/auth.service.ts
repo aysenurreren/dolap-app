@@ -8,8 +8,14 @@ import {
   hashVerificationCode,
 } from '../../shared/utils/crypto.util';
 import { RegisterInput } from './auth.validation';
+import { comparePassword } from '../../shared/utils/crypto.util';
+import { LoginInput } from './auth.validation';
+import bcrypt from 'bcrypt';
 
-export class AuthError extends Error {};
+export class AuthError extends Error {}
+
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync('dummy-password-for-timing-safety', 12);
+const GENERIC_LOGIN_ERROR = 'Email veya şifre hatalı';
 
 const CODE_EXPIRY_MINUTES = 15;
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -70,7 +76,7 @@ async function createNewUser(input: RegisterInput, ipAddress: string | null) {
   return { message: GENERIC_SUCCESS_MESSAGE };
 }
 
-async function resendVerificationCode(
+export async function resendVerificationCode(
   userId: string,
   existingVerification: { windowStartedAt: Date } | null,
   ipAddress: string | null
@@ -158,4 +164,36 @@ export async function verifyEmail(
   const accessToken = generateAccessToken({ userId: user.id, email: user.email });
 
   return { accessToken, refreshToken, user: { id: user.id, email: user.email, displayName: user.displayName } };
+}
+
+export async function loginUser(
+  input: LoginInput,
+  ipAddress: string | null,
+  userAgent: string | null
+) {
+  const user = await prisma.user.findUnique({
+    where: { email: input.email },
+    include: { emailVerification: true },
+  });
+
+  const hashToCompare = user ? user.passwordHash : DUMMY_PASSWORD_HASH;
+  const isPasswordCorrect = await comparePassword(input.password, hashToCompare);
+
+  if (!user || !isPasswordCorrect) {
+    throw new AuthError(GENERIC_LOGIN_ERROR);
+  }
+
+  if (!user.emailVerified) {
+    await resendVerificationCode(user.id, user.emailVerification, ipAddress);
+    throw new AuthError('Email adresiniz doğrulanmamış. Yeni bir doğrulama kodu gönderildi.');
+  }
+
+  const refreshToken = await createSession(user.id, ipAddress, userAgent, prisma);
+  const accessToken = generateAccessToken({ userId: user.id, email: user.email });
+
+  return {
+    accessToken,
+    refreshToken,
+    user: { id: user.id, email: user.email, displayName: user.displayName },
+  };
 }
