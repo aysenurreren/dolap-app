@@ -1,3 +1,5 @@
+import { generateAccessToken } from '../../shared/utils/jwt.util';
+import { createSession } from './session.service';
 import prisma from '../../config/prisma';
 import { Prisma } from '@prisma/client';
 import {
@@ -6,6 +8,8 @@ import {
   hashVerificationCode,
 } from '../../shared/utils/crypto.util';
 import { RegisterInput } from './auth.validation';
+
+export class AuthError extends Error {};
 
 const CODE_EXPIRY_MINUTES = 15;
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -93,4 +97,65 @@ async function resendVerificationCode(
   console.log(`[DEV] (resend) doğrulama kodu: ${code}`);
 
   return { message: GENERIC_SUCCESS_MESSAGE };
+}
+
+const MAX_ATTEMPTS = 5;
+const GENERIC_VERIFY_ERROR = 'Kod geçersiz veya süresi dolmuş';
+
+export async function verifyEmail(
+  input: { email: string; code: string },
+  ipAddress: string | null,
+  userAgent: string | null
+) {
+  const user = await prisma.user.findUnique({
+    where: { email: input.email },
+    include: { emailVerification: true },
+  });
+
+  if (!user || !user.emailVerification) {
+    throw new AuthError(GENERIC_VERIFY_ERROR);
+  }
+
+  const verification = user.emailVerification;
+
+  if (verification.expiresAt < new Date()) {
+    throw new AuthError(GENERIC_VERIFY_ERROR);
+  }
+
+  if (verification.attempts >= MAX_ATTEMPTS) {
+    throw new AuthError(GENERIC_VERIFY_ERROR);
+  }
+
+  const inputCodeHash = hashVerificationCode(input.code);
+  const isCodeCorrect = inputCodeHash === verification.codeHash;
+
+  if (!isCodeCorrect) {
+    const updated = await prisma.emailVerification.update({
+      where: { userId: user.id },
+      data: { attempts: { increment: 1 } },
+    });
+
+    if (updated.attempts >= MAX_ATTEMPTS) {
+      console.log(`[DEV] ${user.email} için güvenlik uyarısı emaili gönderilecek`);
+    }
+
+    throw new AuthError(GENERIC_VERIFY_ERROR);
+  }
+
+  const refreshToken = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true },
+    });
+
+    await tx.emailVerification.delete({
+      where: { userId: user.id },
+    });
+
+    return createSession(user.id, ipAddress, userAgent, tx);
+  });
+
+  const accessToken = generateAccessToken({ userId: user.id, email: user.email });
+
+  return { accessToken, refreshToken, user: { id: user.id, email: user.email, displayName: user.displayName } };
 }

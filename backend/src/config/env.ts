@@ -8,6 +8,7 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET en az 32 karakter olmalı'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET en az 32 karakter olmalı'),
   PORT: z.string().default('3000'),
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
 });
 
 const parsed = envSchema.safeParse(process.env);

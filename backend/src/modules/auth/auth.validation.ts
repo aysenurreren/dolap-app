@@ -20,3 +20,10 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const verifyEmailSchema = z.object({
+  email: z.string().email('Geçerli bir email adresi girin'),
+  code: z.string().length(6, 'Kod 6 haneli olmalı').regex(/^\d+$/, 'Kod sadece rakamlardan oluşmalı'),
+});
+
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
