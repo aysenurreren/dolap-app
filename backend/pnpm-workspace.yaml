@@ -1,3 +1,4 @@
 allowBuilds:
   bcrypt: true
   "@prisma/client": true
+  prisma: true
