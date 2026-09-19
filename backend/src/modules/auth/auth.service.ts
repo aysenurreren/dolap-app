@@ -11,8 +11,7 @@ import { RegisterInput } from './auth.validation';
 import { comparePassword } from '../../shared/utils/crypto.util';
 import { LoginInput } from './auth.validation';
 import bcrypt from 'bcrypt';
-
-export class AuthError extends Error {}
+import { AuthError } from '../../shared/utils/errors';
 
 const DUMMY_PASSWORD_HASH = bcrypt.hashSync('dummy-password-for-timing-safety', 12);
 const GENERIC_LOGIN_ERROR = 'Email veya şifre hatalı';
