@@ -6,6 +6,7 @@ import { env } from '../../config/env';
 import { loginSchema } from './auth.validation';
 import { loginUser } from './auth.service';
 import { refreshSession } from './session.service';
+import { logoutSession } from './session.service';
 
 export async function register(req: Request, res: Response) {
   const validationResult = registerSchema.safeParse(req.body);
@@ -125,4 +126,15 @@ export async function refreshController(req: Request, res: Response) {
     console.error('Refresh hatası:', error);
     return res.status(500).json({ error: 'Sunucu hatası, lütfen tekrar deneyin' });
   }
+}
+
+export async function logoutController(req: Request, res: Response) {
+  const rawRefreshToken = req.cookies?.refreshToken;
+
+  if (rawRefreshToken) {
+    await logoutSession(rawRefreshToken);
+  }
+
+  res.clearCookie('refreshToken');
+  return res.status(200).json({ message: 'Çıkış yapıldı' });
 }

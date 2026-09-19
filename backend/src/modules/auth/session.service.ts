@@ -78,3 +78,12 @@ export async function refreshSession(
 
   return { accessToken, refreshToken: newRefreshToken };
 }
+
+export async function logoutSession(rawRefreshToken: string) {
+  const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
+
+  await prisma.session.updateMany({
+    where: { refreshTokenHash: tokenHash, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+}
