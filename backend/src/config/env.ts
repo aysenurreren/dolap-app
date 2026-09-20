@@ -9,6 +9,11 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET en az 32 karakter olmalı'),
   PORT: z.string().default('3000'),
   NODE_ENV: z.enum(['development', 'production']).default('development'),
+  S3_ENDPOINT: z.string().min(1),
+  S3_ACCESS_KEY: z.string().min(1),
+  S3_SECRET_KEY: z.string().min(1),
+  S3_BUCKET: z.string().min(1),
+  S3_REGION: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);

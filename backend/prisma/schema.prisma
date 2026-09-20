@@ -18,7 +18,8 @@ model User {
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   emailVerification EmailVerification?
-  sessions           Session[]
+  sessions  Session[]
+  clothingItems ClothingItem[]
 
   @@map("users")
 }
@@ -55,4 +56,51 @@ model Session {
 
   @@index([familyId])
   @@map("sessions")
+}
+
+enum ClothingCategory {
+  TSHIRT
+  PANTS
+  JACKET
+  SHOES
+  ACCESSORY
+  DRESS
+  SWEATER
+}
+
+enum ClothingSeason {
+  YAZ
+  KIS
+  ILKBAHAR
+  SONBAHAR
+}
+
+model ClothingItem {
+  id           String            @id @default(uuid())
+  userId       String            @map("user_id")
+  imageKey     String            @map("image_key")
+
+  category     ClothingCategory
+  color        String
+  seasons      ClothingSeason[]
+  fabric       String?
+  brand        String?
+
+  categoryConfidence Float?      @map("category_confidence")
+  colorConfidence    Float?      @map("color_confidence")
+  seasonsConfidence  Float?      @map("seasons_confidence")
+  fabricConfidence   Float?      @map("fabric_confidence")
+
+  aiOriginalSuggestion Json?     @map("ai_original_suggestion")
+
+  lastWornAt   DateTime?         @map("last_worn_at")
+  deletedAt    DateTime?         @map("deleted_at")
+
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("clothing_items")
 }
