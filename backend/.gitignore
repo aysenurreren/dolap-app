@@ -3,6 +3,3 @@ node_modules
 dist/
 /src/generated/prisma
 *.log
-.venv/
-ai-service/data/
-__pycache__/
