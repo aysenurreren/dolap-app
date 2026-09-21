@@ -4,15 +4,26 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 CATEGORY_MAPPING = {
-    "Tshirts": "TSHIRT", "Shirts": "TSHIRT", "Tops": "TSHIRT",
-    "Jeans": "PANTS", "Track Pants": "PANTS", "Shorts": "PANTS", "Trousers": "PANTS", "Leggings": "PANTS",
-    "Jackets": "JACKET", "Waistcoat": "JACKET", "Blazers": "JACKET",
-    "Casual Shoes": "SHOES", "Formal Shoes": "SHOES", "Sports Shoes": "SHOES",
-    "Flip Flops": "SHOES", "Sandals": "SHOES", "Flats": "SHOES", "Heels": "SHOES",
-    "Watches": "ACCESSORY", "Belts": "ACCESSORY", "Handbags": "ACCESSORY",
-    "Sunglasses": "ACCESSORY", "Bracelet": "ACCESSORY", "Socks": "ACCESSORY",
-    "Dresses": "DRESS", "Kurtas": "DRESS", "Sarees": "DRESS",
+    "Tshirts": "TSHIRT", "Tops": "TSHIRT",
+    "Shirts": "SHIRT",
     "Sweaters": "SWEATER", "Sweatshirts": "SWEATER",
+    "Jackets": "JACKET", "Waistcoat": "JACKET", "Blazers": "JACKET",
+    "Rain Jacket": "JACKET", "Nehru Jackets": "JACKET",
+    "Jeans": "PANTS", "Trousers": "PANTS", "Track Pants": "PANTS",
+    "Capris": "PANTS", "Leggings": "PANTS", "Jeggings": "PANTS",
+    "Patiala": "PANTS", "Churidar": "PANTS", "Salwar": "PANTS",
+    "Shorts": "SHORTS", "Lounge Shorts": "SHORTS",
+    "Skirts": "SKIRT",
+    "Dresses": "DRESS", "Sarees": "DRESS", "Kurtas": "DRESS", "Kurtis": "DRESS",
+    "Tunics": "DRESS", "Nightdress": "DRESS", "Night suits": "DRESS", "Kurta Sets": "DRESS",
+    "Scarves": "SCARF", "Stoles": "SCARF", "Dupatta": "SCARF",
+    "Earrings": "JEWELRY", "Necklace and Chains": "JEWELRY", "Pendant": "JEWELRY",
+    "Ring": "JEWELRY", "Bangle": "JEWELRY", "Bracelet": "JEWELRY",
+    "Watches": "ACCESSORY", "Belts": "ACCESSORY", "Handbags": "ACCESSORY",
+    "Sunglasses": "ACCESSORY", "Socks": "ACCESSORY", "Wallets": "ACCESSORY",
+    "Backpacks": "ACCESSORY", "Clutches": "ACCESSORY", "Caps": "ACCESSORY", "Ties": "ACCESSORY",
+    "Casual Shoes": "SHOES", "Sports Shoes": "SHOES", "Heels": "SHOES",
+    "Flip Flops": "SHOES", "Sandals": "SHOES", "Formal Shoes": "SHOES", "Flats": "SHOES",
 }
 
 df = pd.read_csv("data/styles.csv", on_bad_lines="skip")

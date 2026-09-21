@@ -60,12 +60,17 @@ model Session {
 
 enum ClothingCategory {
   TSHIRT
-  PANTS
-  JACKET
-  SHOES
-  ACCESSORY
-  DRESS
+  SHIRT
   SWEATER
+  JACKET
+  PANTS
+  SHORTS
+  SKIRT
+  DRESS
+  SCARF
+  JEWELRY
+  ACCESSORY
+  SHOES
 }
 
 enum ClothingSeason {
