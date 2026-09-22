@@ -4,10 +4,11 @@ import torch.nn as nn
 from torchvision import transforms, models
 from PIL import Image
 import io
+from rembg import remove
 
 app = FastAPI()
 
-CLASS_NAMES = ['ACCESSORY', 'DRESS', 'JACKET', 'PANTS', 'SHOES', 'SWEATER', 'TSHIRT']
+CLASS_NAMES = ['ACCESSORY', 'DRESS', 'JACKET', 'JEWELRY', 'PANTS', 'SCARF', 'SHIRT', 'SHOES', 'SHORTS', 'SKIRT', 'SWEATER', 'TSHIRT']
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = models.mobilenet_v3_small(weights=None)
@@ -24,9 +25,22 @@ inference_transform = transforms.Compose([
 
 
 def get_dominant_color(image: Image.Image) -> str:
-    small = image.resize((1, 1), Image.LANCZOS)
-    r, g, b = small.getpixel((0, 0))[:3]
-    return f"#{r:02X}{g:02X}{b:02X}"
+    foreground = remove(image)
+
+    pixels = foreground.getdata()
+    non_transparent_pixels = [
+        (r, g, b) for r, g, b, a in pixels if a > 200
+    ]
+
+    if not non_transparent_pixels:
+        r, g, b = image.resize((1, 1), Image.LANCZOS).getpixel((0, 0))[:3]
+        return f"#{r:02X}{g:02X}{b:02X}"
+
+    avg_r = sum(p[0] for p in non_transparent_pixels) // len(non_transparent_pixels)
+    avg_g = sum(p[1] for p in non_transparent_pixels) // len(non_transparent_pixels)
+    avg_b = sum(p[2] for p in non_transparent_pixels) // len(non_transparent_pixels)
+
+    return f"#{avg_r:02X}{avg_g:02X}{avg_b:02X}"
 
 
 @app.get("/health")
