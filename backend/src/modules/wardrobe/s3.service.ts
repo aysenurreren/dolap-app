@@ -3,6 +3,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import s3Client from '../../config/s3';
 import { env } from '../../config/env';
+import { GetObjectCommand } from '@aws-sdk/client-s3';
 
 const UPLOAD_URL_EXPIRY_SECONDS = 300;
 
@@ -24,4 +25,11 @@ export async function generateUploadUrl(userId: string, contentType: string, fil
 
 export function buildDisplayUrl(imageKey: string): string {
   return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${imageKey}`;
+}
+
+export async function getImageBuffer(imageKey: string): Promise<Buffer> {
+  const command = new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: imageKey });
+  const response = await s3Client.send(command);
+  const byteArray = await response.Body!.transformToByteArray();
+  return Buffer.from(byteArray);
 }

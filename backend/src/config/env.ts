@@ -14,6 +14,7 @@ const envSchema = z.object({
   S3_SECRET_KEY: z.string().min(1),
   S3_BUCKET: z.string().min(1),
   S3_REGION: z.string().min(1),
+  AI_SERVICE_URL: z.string().url(),
 });
 
 const parsed = envSchema.safeParse(process.env);
