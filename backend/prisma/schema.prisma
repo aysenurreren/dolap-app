@@ -20,6 +20,7 @@ model User {
   emailVerification EmailVerification?
   sessions  Session[]
   clothingItems ClothingItem[]
+  outfits  Outfit[]
 
   @@map("users")
 }
@@ -108,4 +109,28 @@ model ClothingItem {
 
   @@index([userId])
   @@map("clothing_items")
+
+  outfitLinks OutfitClothingItem[]
+}
+
+model Outfit {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OutfitClothingItem[]
+
+  @@map("outfits")
+}
+
+model OutfitClothingItem {
+  outfitId       String @map("outfit_id")
+  clothingItemId String @map("clothing_item_id")
+
+  outfit       Outfit       @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  clothingItem ClothingItem @relation(fields: [clothingItemId], references: [id], onDelete: Cascade)
+
+  @@id([outfitId, clothingItemId])
+  @@map("outfit_clothing_items")
 }

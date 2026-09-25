@@ -49,11 +49,20 @@ async def classify(file: UploadFile = File(...)):
     category_confidence = confidence.item()
     dominant_color = get_dominant_color(image)
 
+    SEASON_RULES = {
+    "JACKET": ["KIS", "SONBAHAR"],
+    "SWEATER": ["KIS", "SONBAHAR"],
+    "SHORTS": ["YAZ", "ILKBAHAR"],
+    "TSHIRT": ["YAZ", "ILKBAHAR", "SONBAHAR"],
+    "SKIRT": ["YAZ", "ILKBAHAR", "SONBAHAR"],
+}
+    seasons = SEASON_RULES.get(category, ["YAZ", "ILKBAHAR", "SONBAHAR", "KIS"])
+
     return {
         "category": category,
         "categoryConfidence": round(category_confidence, 4),
         "color": dominant_color,
         "colorConfidence": 0.7,
-        "seasons": ["YAZ"],
+        "seasons": seasons,
         "seasonsConfidence": 0.5,
     }
