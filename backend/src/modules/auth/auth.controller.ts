@@ -138,3 +138,10 @@ export async function logoutController(req: Request, res: Response) {
   res.clearCookie('refreshToken');
   return res.status(200).json({ message: 'Çıkış yapıldı' });
 }
+
+export async function meController(req: Request, res: Response) {
+  return res.status(200).json({
+    id: req.user!.userId,
+    email: req.user!.email,
+  });
+}
