@@ -3,10 +3,13 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import LoginPage from './pages/LoginPage';
+import WardrobePage from './pages/WardrobePage';
+import OutfitBuilderPage from './pages/OutfitBuilderPage';
+import OutfitsListPage from './pages/OutfitsListPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './components/AppLayout';
 import api from './api/axiosInstance';
 import { useAuthStore } from './store/authStore';
-import WardrobePage from './pages/WardrobePage';
 
 function App() {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -19,7 +22,7 @@ function App() {
         const meResponse = await api.get('/auth/me');
         setAuth(response.data.accessToken, meResponse.data);
       } catch {
-        // Refresh token yok/geçersiz — kullanıcı zaten çıkmış demektir, sorun değil
+        // sorun değil, kullanıcı zaten çıkmış
       } finally {
         setIsBootstrapping(false);
       }
@@ -36,11 +39,16 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/login" element={<LoginPage />} />
+
       <Route element={<ProtectedRoute />}>
-        <Route path="/wardrobe" element={<WardrobePage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/wardrobe" element={<WardrobePage />} />
+          <Route path="/outfits/builder" element={<OutfitBuilderPage />} />
+          <Route path="/outfits" element={<OutfitsListPage />} />
+        </Route>
       </Route>
+
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/wardrobe" element={<WardrobePage />} />
     </Routes>
   );
 }

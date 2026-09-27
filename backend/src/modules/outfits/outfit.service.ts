@@ -1,7 +1,8 @@
-export class OutfitError extends Error {}
 import prisma from '../../config/prisma';
 import { getColorHarmonyScore } from '../../shared/utils/color.util';
 import { ClothingCategory, ClothingSeason, ClothingItem } from '@prisma/client';
+import { buildDisplayUrl } from '../wardrobe/s3.service';
+export class OutfitError extends Error {}
 
 const TOP_CATEGORIES: ClothingCategory[] = ['TSHIRT', 'SHIRT', 'SWEATER', 'JACKET'];
 const BOTTOM_CATEGORIES: ClothingCategory[] = ['PANTS', 'SHORTS', 'SKIRT'];
@@ -90,15 +91,44 @@ export async function generateOutfitSuggestions(userId: string): Promise<Suggest
   }
 
   candidates.sort((a, b) => b.score - a.score);
+const topCandidates = candidates.slice(0, 3);
 
-  return { suggestions: candidates.slice(0, 3) };
+const suggestionsWithUrls = await Promise.all(
+  topCandidates.map(async (candidate) => ({
+    score: candidate.score,
+    items: await Promise.all(
+      candidate.items.map(async (item) => ({
+        ...item,
+        imageUrl: await buildDisplayUrl(item.imageKey),
+      }))
+    ),
+  }))
+);
+
+return { suggestions: suggestionsWithUrls };
 }
+
 export async function getUserOutfits(userId: string) {
-  return prisma.outfit.findMany({
+  const outfits = await prisma.outfit.findMany({
     where: { userId },
     include: { items: { include: { clothingItem: true } } },
     orderBy: { createdAt: 'desc' },
   });
+
+  return Promise.all(
+    outfits.map(async (outfit) => ({
+      ...outfit,
+      items: await Promise.all(
+        outfit.items.map(async (link) => ({
+          ...link,
+          clothingItem: {
+            ...link.clothingItem,
+            imageUrl: await buildDisplayUrl(link.clothingItem.imageKey),
+          },
+        }))
+      ),
+    }))
+  );
 }
 
 export async function saveOutfit(userId: string, clothingItemIds: string[]) {
@@ -126,5 +156,11 @@ export async function saveOutfit(userId: string, clothingItemIds: string[]) {
     },
   });
 
-  return outfit;
+  const itemsWithUrls = await Promise.all(
+  outfit.items.map(async (link) => ({
+    ...link,
+    clothingItem: { ...link.clothingItem, imageUrl: await buildDisplayUrl(link.clothingItem.imageKey) },
+  }))
+);
+return { ...outfit, items: itemsWithUrls };
 }

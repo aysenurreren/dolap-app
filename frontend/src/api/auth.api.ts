@@ -25,3 +25,7 @@ export async function verifyEmail(email: string, code: string) {
   const response = await api.post('/auth/verify-email', { email, code });
   return response.data;
 }
+
+export async function logoutUser() {
+  await api.post('/auth/logout');
+}
