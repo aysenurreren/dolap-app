@@ -23,8 +23,9 @@ export async function generateUploadUrl(userId: string, contentType: string, fil
   return { uploadUrl, imageKey };
 }
 
-export function buildDisplayUrl(imageKey: string): string {
-  return `${env.S3_ENDPOINT}/${env.S3_BUCKET}/${imageKey}`;
+export async function buildDisplayUrl(imageKey: string): Promise<string> {
+  const command = new GetObjectCommand({ Bucket: env.S3_BUCKET, Key: imageKey });
+  return getSignedUrl(s3Client, command, { expiresIn: 3600 });
 }
 
 export async function getImageBuffer(imageKey: string): Promise<Buffer> {

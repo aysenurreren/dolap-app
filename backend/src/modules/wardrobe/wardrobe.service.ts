@@ -31,7 +31,7 @@ export async function createClothingItem(userId: string, imageKey: string) {
     },
   });
 
-  return { ...clothingItem, imageUrl: buildDisplayUrl(clothingItem.imageKey) };
+  return { ...clothingItem, imageUrl: await buildDisplayUrl(clothingItem.imageKey) };
 }
 
 async function findOwnedClothingItem(userId: string, itemId: string) {
@@ -52,12 +52,14 @@ export async function getUserClothingItems(userId: string) {
     orderBy: { createdAt: 'desc' },
   });
 
-  return items.map((item) => ({ ...item, imageUrl: buildDisplayUrl(item.imageKey) }));
+  return Promise.all(
+    items.map(async (item) => ({ ...item, imageUrl: await buildDisplayUrl(item.imageKey) }))
+  );
 }
 
 export async function getClothingItemById(userId: string, itemId: string) {
   const item = await findOwnedClothingItem(userId, itemId);
-  return { ...item, imageUrl: buildDisplayUrl(item.imageKey) };
+  return { ...item, imageUrl: await buildDisplayUrl(item.imageKey) };
 }
 
 export async function updateClothingItem(
@@ -72,7 +74,7 @@ export async function updateClothingItem(
     data,
   });
 
-  return { ...updated, imageUrl: buildDisplayUrl(updated.imageKey) };
+  return { ...updated, imageUrl: await buildDisplayUrl(updated.imageKey) };
 }
 
 export async function softDeleteClothingItem(userId: string, itemId: string) {

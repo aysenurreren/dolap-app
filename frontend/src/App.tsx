@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import api from './api/axiosInstance';
 import { useAuthStore } from './store/authStore';
+import WardrobePage from './pages/WardrobePage';
 
 function App() {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -36,9 +37,10 @@ function App() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/wardrobe" element={<div>Dolap sayfası yakında</div>} />
+        <Route path="/wardrobe" element={<WardrobePage />} />
       </Route>
       <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/wardrobe" element={<WardrobePage />} />
     </Routes>
   );
 }
