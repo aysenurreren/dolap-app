@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
 import api from './api/axiosInstance';
 import { useAuthStore } from './store/authStore';
+import ColorWheelPage from './pages/ColorWheelPage';
 
 function App() {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -39,6 +40,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/colors" element={<ColorWheelPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

@@ -7,6 +7,9 @@ import io
 from rembg import remove
 import onnxruntime
 onnxruntime.preload_dlls()
+import numpy as np
+from sklearn.cluster import KMeans
+import colorsys
 
 app = FastAPI()
 
@@ -25,27 +28,33 @@ inference_transform = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
+
 from rembg import remove, new_session
 
-rembg_session = new_session("u2netp", providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+rembg_session = new_session("u2netp", providers=["CPUExecutionProvider"])
+
 
 def get_dominant_color(image: Image.Image) -> str:
     try:
-        foreground = remove(image, session=rembg_session)
+        small = image.convert("RGB").resize((200, 200))
+        foreground = remove(small, session=rembg_session)
+
         pixels = foreground.getdata()
-        non_transparent_pixels = [(r, g, b) for r, g, b, a in pixels if a > 200]
+        foreground_pixels = [(r, g, b) for r, g, b, a in pixels if a > 200]
 
-        if not non_transparent_pixels:
-            raise ValueError("Segmentasyon hiçbir piksel bulamadı")
+        if len(foreground_pixels) < 50:
+            raise ValueError("Segmentasyon yeterli piksel bulamadı")
 
-        avg_r = sum(p[0] for p in non_transparent_pixels) // len(non_transparent_pixels)
-        avg_g = sum(p[1] for p in non_transparent_pixels) // len(non_transparent_pixels)
-        avg_b = sum(p[2] for p in non_transparent_pixels) // len(non_transparent_pixels)
-        return f"#{avg_r:02X}{avg_g:02X}{avg_b:02X}"
+        kmeans = KMeans(n_clusters=3, n_init=10, random_state=42)
+        kmeans.fit(foreground_pixels)
+        labels, counts = np.unique(kmeans.labels_, return_counts=True)
+        dominant_idx = labels[np.argmax(counts)]
+        r, g, b = kmeans.cluster_centers_[dominant_idx]
+        return f"#{int(r):02X}{int(g):02X}{int(b):02X}"
 
     except Exception as e:
         print(f"[UYARI] Segmentasyon başarısız, basit yönteme dönülüyor: {e}")
-        r, g, b = image.resize((1, 1), Image.LANCZOS).getpixel((0, 0))[:3]
+        r, g, b = image.convert("RGB").resize((1, 1), Image.LANCZOS).getpixel((0, 0))[:3]
         return f"#{r:02X}{g:02X}{b:02X}"
     
 @app.get("/health")

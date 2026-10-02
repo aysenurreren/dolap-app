@@ -28,6 +28,9 @@ function Navbar() {
         <Link to="/outfits" className="text-gray-700 hover:text-blue-600 font-medium">
           Kombinlerim
         </Link>
+        <Link to="/colors" className="text-gray-700 hover:text-blue-600 font-medium">
+        Renk Uyumu
+        </Link>
       </div>
       <div className="flex items-center gap-4">
         {user && <span className="text-sm text-gray-500">{user.displayName}</span>}

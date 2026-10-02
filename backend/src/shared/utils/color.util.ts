@@ -44,3 +44,25 @@ export function getColorHarmonyScore(hex1: string, hex2: string): number {
   if (hueDiff >= 60 && hueDiff <= 90) return 0.75;
   return 0.4;
 }
+
+export type ColorScheme = 'complementary' | 'analogous' | 'triadic' | 'splitComplementary' | 'tetradic';
+
+export function generateSchemeHues(baseHue: number, scheme: ColorScheme): number[] {
+  switch (scheme) {
+    case 'complementary':
+      return [(baseHue + 180) % 360];
+    case 'analogous':
+      return [(baseHue - 30 + 360) % 360, (baseHue + 30) % 360];
+    case 'triadic':
+      return [(baseHue + 120) % 360, (baseHue + 240) % 360];
+    case 'splitComplementary':
+      return [(baseHue + 150) % 360, (baseHue + 210) % 360];
+    case 'tetradic':
+      return [(baseHue + 90) % 360, (baseHue + 180) % 360, (baseHue + 270) % 360];
+  }
+}
+
+export function hueDistance(h1: number, h2: number): number {
+  const diff = Math.abs(h1 - h2);
+  return Math.min(diff, 360 - diff);
+}
