@@ -1,9 +1,11 @@
+import sys
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms, models
 from sklearn.metrics import confusion_matrix, classification_report
 import numpy as np
+from pathlib import Path
 
 
 def main():
@@ -21,7 +23,8 @@ def main():
 
     model = models.mobilenet_v3_small(weights=None)
     model.classifier[3] = nn.Linear(model.classifier[3].in_features, len(class_names))
-    model.load_state_dict(torch.load("clothing_classifier.pth", map_location=DEVICE))
+    model_path = sys.argv[1] if len(sys.argv) > 1 else "clothing_classifier.pth"
+    model.load_state_dict(torch.load(model_path, map_location=DEVICE))
     model.to(DEVICE)
     model.eval()
 
@@ -37,6 +40,20 @@ def main():
             all_labels.extend(labels.numpy())
 
     cm = confusion_matrix(all_labels, all_preds)
+
+    is_ag = np.array([Path(p).name.startswith("ag_") for p, _ in val_dataset.samples])
+    labels_arr = np.array(all_labels)
+    preds_arr = np.array(all_preds)
+    print("\n=== Kaynağa Göre Doğruluk ===")
+    for name, mask in [("Kaggle (eski veri)", ~is_ag), ("agrigorev (yeni veri)", is_ag)]:
+        if mask.sum() > 0:
+            acc = (labels_arr[mask] == preds_arr[mask]).mean()
+            print(f"{name}: {mask.sum()} görsel, doğruluk {acc:.2%}")
+    print("\nagrigorev görsellerinde sınıf bazlı doğruluk:")
+    for i, name in enumerate(class_names):
+        m = is_ag & (labels_arr == i)
+        if m.sum() > 0:
+            print(f"  {name}: {(preds_arr[m] == i).mean():.2%} ({m.sum()} görsel)")
 
     print("\n=== Karışıklık Matrisi ===")
     print("Satırlar: Gerçek kategori, Sütunlar: Modelin tahmini\n")

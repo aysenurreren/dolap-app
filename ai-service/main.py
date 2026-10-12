@@ -18,7 +18,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = models.mobilenet_v3_small(weights=None)
 model.classifier[3] = nn.Linear(model.classifier[3].in_features, len(CLASS_NAMES))
-model.load_state_dict(torch.load("clothing_classifier.pth", map_location=DEVICE))
+model.load_state_dict(torch.load("clothing_classifier_v2.pth", map_location=DEVICE))
 model.to(DEVICE)
 model.eval()
 

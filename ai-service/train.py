@@ -1,3 +1,4 @@
+import time
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -23,8 +24,8 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
-    train_dataset = datasets.ImageFolder("data/processed/train", transform=train_transform)
-    val_dataset = datasets.ImageFolder("data/processed/val", transform=val_transform)
+    train_dataset = datasets.ImageFolder("data/processed_256/train", transform=train_transform)
+    val_dataset = datasets.ImageFolder("data/processed_256/val", transform=val_transform)
 
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=2)
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=2)
@@ -53,12 +54,14 @@ def main():
     print("Model hazır, eğitilebilir parametre sayısı:")
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 
-    def train_one_epoch():
+    def train_one_epoch(epoch_idx):
         model.train()
         total_loss = 0
         correct = 0
+        start = time.time()
+        total_batches = len(train_loader)
 
-        for images, labels in train_loader:
+        for batch_idx, (images, labels) in enumerate(train_loader, start=1):
             images, labels = images.to(DEVICE), labels.to(DEVICE)
 
             optimizer.zero_grad()
@@ -69,6 +72,11 @@ def main():
 
             total_loss += loss.item()
             correct += (outputs.argmax(1) == labels).sum().item()
+
+            if batch_idx % 50 == 0 or batch_idx == total_batches:
+                elapsed = time.time() - start
+                eta = elapsed / batch_idx * (total_batches - batch_idx)
+                print(f"  Epoch {epoch_idx} | batch {batch_idx}/{total_batches} | geçen {elapsed:.0f}s | kalan ~{eta:.0f}s", flush=True)
 
         avg_loss = total_loss / len(train_loader)
         accuracy = correct / len(train_dataset)
@@ -109,12 +117,12 @@ def main():
 
     NUM_EPOCHS = 5
     for epoch in range(NUM_EPOCHS):
-        train_loss, train_acc = train_one_epoch()
+        train_loss, train_acc = train_one_epoch(epoch + 1)
         val_loss, val_acc = validate()
         print(f"Epoch {epoch+1}/{NUM_EPOCHS} — Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2%} | Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.2%}")
 
-    torch.save(model.state_dict(), "clothing_classifier.pth")
-    print("Model kaydedildi: clothing_classifier.pth")
+    torch.save(model.state_dict(), "clothing_classifier_v2.pth")
+    print("Model kaydedildi: clothing_classifier_v2.pth")
 
 
 if __name__ == "__main__":
